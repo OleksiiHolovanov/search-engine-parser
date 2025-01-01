@@ -11,7 +11,7 @@ def get_script_dir():
     try:
         return os.path.dirname(os.path.abspath(__file__))
     except NameError:
-        return os.getcwd()  # В случае, если __file__ не определён (например, в интерактивном интерпретаторе)
+        return os.getcwd()  # If file doesn't exist
 
 def load_settings():
     settings_file = os.path.join(get_script_dir(), 'settings.pkl')
@@ -23,7 +23,7 @@ def load_settings():
             'user_agent': '',
             'language': 'en',
             'country': 'us',
-            'queries': []
+            'query': ''
         }
 
 def save_settings(settings):
@@ -33,23 +33,23 @@ def save_settings(settings):
 
 def search_google(settings):
     headers = {'User-Agent': settings['user_agent']}
+    query = settings['query']
+    url = f"https://www.google.com/search?q={query}&hl={settings['language']}&gl={settings['country']}"
+    response = requests.get(url, headers=headers)
     results = []
-    for query in settings['queries']:
-        url = f"https://www.google.com/search?q={query}&hl={settings['language']}&gl={settings['country']}"
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            search_results = soup.find_all('div', class_='tF2Cxc')
-            for result in search_results:
-                title = result.find('h3')
-                link = result.find('a', href=True)
-                snippet = result.find('span', class_='aCOpRe')
-                entry = {
-                    'Title': title.text if title else 'No title found',
-                    'Link': link['href'] if link else 'No link found',
-                    'Snippet': snippet.text if snippet else 'No snippet found'
-                }
-                results.append(entry)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        search_results = soup.find_all('div', class_='tF2Cxc')
+        for result in search_results:
+            title = result.find('h3')
+            link = result.find('a', href=True)
+            snippet = result.find('span', class_='aCOpRe')
+            entry = {
+                'Title': title.text if title else 'No title found',
+                'Link': link['href'] if link else 'No link found',
+                'Snippet': snippet.text if snippet else 'No snippet found'
+            }
+            results.append(entry)
     df = pd.DataFrame(results)
     file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")], initialdir=get_script_dir())
     if file_path:
@@ -65,7 +65,7 @@ def create_gui(settings):
     user_agent_entry.insert(0, settings['user_agent'])
     user_agent_entry.grid(row=0, column=1)
 
-    link_label = tk.Label(window, text="Find your user agent at https://www.whatsmyua.info", fg="blue", cursor="hand2")
+    link_label = tk.Label(window, text="Find your user agent at https://www.whatsmyua.info", fg="white", cursor="hand2")
     link_label.grid(row=1, column=1)
     link_label.bind("<Button-1>", lambda e: webbrowser.open("https://www.whatsmyua.info"))
 
@@ -79,20 +79,20 @@ def create_gui(settings):
     country_entry.insert(0, settings['country'])
     country_entry.grid(row=3, column=1)
 
-    tk.Label(window, text="Queries (one per line):").grid(row=4, column=0)
-    queries_text = tk.Text(window, height=10, width=50)
-    queries_text.insert('1.0', '\n'.join(settings['queries']))
-    queries_text.grid(row=4, column=1, columnspan=3)
+    tk.Label(window, text="Query:").grid(row=4, column=0)
+    query_entry = tk.Entry(window, width=50)
+    query_entry.insert(0, settings['query'])
+    query_entry.grid(row=4, column=1)
 
     def on_save():
         settings['user_agent'] = user_agent_entry.get()
         settings['language'] = language_entry.get()
         settings['country'] = country_entry.get()
-        settings['queries'] = queries_text.get('1.0', tk.END).splitlines()
+        settings['query'] = query_entry.get()
         save_settings(settings)
         search_google(settings)
 
-    tk.Button(window, text="Save Settings and Run Search", command=on_save).grid(row=5, columnspan=4)
+    tk.Button(window, text="Save Settings and Run Search", command=on_save).grid(row=5, columnspan=2)
 
     window.mainloop()
 
