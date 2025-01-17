@@ -6,12 +6,11 @@ My Patreon: https://www.patreon.com/c/OleksiiHolovanov
 
 How to use:
 
-1. If You need the exe file, You can install zip archive and unzip it first.
-2. Run script
-3. Insert user agent. To know Your user agent You can use a website https://www.whatsmyua.info/
-4. Chose language
-5. Chose country
-6. Chose queries
-7. If You need, You can use proxy servers
-8. Press save settings and run search
-9. Name the xlsx file when results will be saved
+1. Run script
+2. Insert user agent. To know Your user agent You can use a website https://www.whatsmyua.info/
+3. Chose language
+4. Chose country
+5. Chose queries
+6. If You need, You can use proxy servers
+7. Press save settings and run search
+8. Name the xlsx file when results will be saved
